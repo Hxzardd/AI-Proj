@@ -62,17 +62,38 @@ Key endpoints: `POST /scenarios/generate`, `POST /scenarios/{id}/solve`,
 Set `BANDOBAST_DATA=/some/dir` to persist scenarios and plans to disk for the
 audit trail; unset, the repository is in-memory.
 
+## Review coverage (Reviews 1–3)
+
+Every feature committed across the three review checkpoints is implemented,
+unit-tested, and exercised by a single end-to-end smoke test:
+
+- **Review 1** — typed scenario/zone/unit data model, A\* routing over a road
+  graph with blocked edges and a Dijkstra cross-check, and CP-SAT allocation
+  with a reported optimality gap.
+- **Review 2** — escalation forecasting vs a persistence baseline, a depth-limited
+  decision-tree priority classifier with per-zone decision paths, a genetic-algorithm
+  comparative baseline, K-Means risk clustering, and the evaluation harness
+  (execution trace + constraint-violation property test).
+- **Review 3** — operator override (pin/veto) with constrained re-solve, plus an
+  audit trail and deterministic scenario replay.
+
+See [`backend/README.md`](backend/README.md) for the per-feature mapping to
+modules and tests.
+
 ## Tests
 
 ```bash
 cd backend
-pytest -q
+pytest -q                     # 29 unit + property tests
+python scripts/smoke_test.py  # end-to-end smoke test of the live API
 ```
 
 The suite includes the property test that confirms **no returned plan violates a
 declared hard constraint** across a range of seeds, plus A\*-equals-Dijkstra
 correctness, heuristic admissibility, forecast-beats-persistence,
-GA-cannot-beat-the-exact-solver, replay determinism, and the API flow.
+GA-cannot-beat-the-exact-solver, replay determinism, and the API flow. The smoke
+test drives the whole decision flow (generate → solve → verify → override →
+replay) and asserts every review's committed feature in one run.
 
 ## Requirements
 

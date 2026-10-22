@@ -127,9 +127,11 @@ def _real_and_cover(ind, scenario, routes, forecast_delta, tiers, params):
                                  and routes[(u.id, z.id)].eta_min <= params.medical_eta_bound_min
                                  for u in assigned[z.id]):
                 covered += 1
-        if z.unserved_min > params.max_unserved_min:
-            if any((routes.get((u.id, z.id)) or _NR).reachable for u in units) and assigned[z.id]:
-                covered += 1
+        if z.unserved_min > params.max_unserved_min and (
+            any((routes.get((u.id, z.id)) or _NR).reachable for u in units)
+            and assigned[z.id]
+        ):
+            covered += 1
     return real, covered
 
 

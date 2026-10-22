@@ -66,6 +66,24 @@ Key endpoints: `POST /scenarios/generate`, `POST /scenarios/{id}/solve`,
 Set `BANDOBAST_DATA=/some/dir` to persist scenarios and plans to disk for the
 audit trail; unset, the repository is in-memory.
 
+## Review 1–3 feature coverage
+
+Every feature committed across the three review checkpoints is implemented,
+tested, and exercised by the end-to-end smoke test:
+
+| Review | Committed feature | Module(s) | Verified by |
+|--------|-------------------|-----------|-------------|
+| **1** | Zone/unit/scenario typed data model | `domain.py`, `synth.py` | `test_pipeline`, smoke `[2]` |
+| **1** | A\* routing over road graph, blocked edges, Dijkstra cross-check | `routing.py` | `test_routing`, smoke `[3]` |
+| **1** | CP-SAT allocation with reported optimality gap | `allocation.py` | `test_allocation`, smoke `[3]` |
+| **2** | Escalation forecast vs persistence baseline (RMSE/MAE, calibration) | `forecast.py` | `test_forecast`, smoke `[3]` |
+| **2** | Depth-limited decision tree with per-zone decision path | `priority.py` | `test_priority`, smoke `[3]` |
+| **2** | Genetic-algorithm comparative baseline | `ga_baseline.py` | `test_ga`, smoke `[3]` |
+| **2** | Evaluation harness / execution trace + constraint-violation property test | `pipeline.py`, `verify.py` | `test_allocation`, smoke `[4]` |
+| **2** | K-Means risk clustering (secondary) | `clustering.py` | `test_clustering`, smoke `[3]` |
+| **3** | Operator override (pin/veto) + constrained re-solve | `api.py`, `allocation.py` | `test_allocation`, smoke `[5]` |
+| **3** | Audit trail + deterministic scenario replay | `repository.py`, `api.py` | `test_pipeline`, `test_api`, smoke `[6]` |
+
 ## Tests
 
 ```bash
@@ -78,6 +96,16 @@ a declared hard constraint** — plus A\*-equals-Dijkstra correctness, heuristic
 admissibility, blocked-edge handling, forecast-beats-persistence, decision-path
 extraction, GA-cannot-beat-the-exact-solver, replay determinism, and the API
 flow.
+
+### End-to-end smoke test
+
+```bash
+python scripts/smoke_test.py
+```
+
+Drives the live FastAPI app through the whole decision flow — generate → solve →
+verify → override/re-solve → replay — and asserts every review's committed
+feature in one run. Exit code `0` means all checks passed.
 
 ## Scope decisions (stated, not incidental)
 
