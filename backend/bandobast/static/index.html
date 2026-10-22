@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BANDOBAST — Operator Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EDE0;      /* warm cream */
+    --ink:#15130C;        /* near-black  */
+    --yellow:#FFCB2D;     /* headline     */
+    --blue:#2F54EB;       /* routes/accent*/
+    --pink:#FF4D5E;       /* critical     */
+    --orange:#FF8A3D;     /* high         */
+    --teal:#13C296;       /* low / proof  */
+    --dot:rgba(21,19,12,.09);
+    --sh:5px 5px 0 var(--ink);
+    --sh-lg:8px 8px 0 var(--ink);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--paper);
+    background-image:radial-gradient(var(--dot) 1.6px, transparent 1.6px);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:13px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:"Archivo Black",system-ui,sans-serif;font-weight:900;letter-spacing:-.01em;margin:0;}
+  .mono{font-family:"JetBrains Mono",monospace;}
+
+  /* ---- header ---- */
+  header{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:18px 26px; border-bottom:3px solid var(--ink);
+    background:var(--paper);
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .logo{
+    background:var(--yellow); border:3px solid var(--ink); box-shadow:var(--sh);
+    padding:6px 14px; transform:rotate(-2deg);
+    font-family:"Archivo Black"; font-size:24px; letter-spacing:.02em;
+  }
+  .tagline{font-size:11px; text-transform:uppercase; letter-spacing:.14em; max-width:230px; opacity:.72;}
+  .controls{margin-left:auto; display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;}
+  .field{display:flex; flex-direction:column; gap:3px;}
+  .field label{font-size:10px; text-transform:uppercase; letter-spacing:.14em; font-weight:700;}
+  input{
+    width:64px; background:#fff; border:3px solid var(--ink); color:var(--ink);
+    padding:7px 9px; font-family:"JetBrains Mono"; font-weight:700; font-size:13px;
+    box-shadow:3px 3px 0 var(--ink); outline:none;
+  }
+  input:focus{background:var(--yellow);}
+
+  .btn{
+    cursor:pointer; border:3px solid var(--ink); background:var(--yellow);
+    font-family:"Archivo Black"; font-size:14px; letter-spacing:.03em;
+    padding:9px 18px; box-shadow:var(--sh); transition:transform .05s, box-shadow .05s;
+    text-transform:uppercase;
+  }
+  .btn:hover{transform:translate(-1px,-1px); box-shadow:var(--sh-lg);}
+  .btn:active{transform:translate(5px,5px); box-shadow:0 0 0 var(--ink);}
+  .btn[disabled]{opacity:.5; cursor:wait;}
+  .btn.sm{font-family:"JetBrains Mono"; font-weight:800; font-size:11px; padding:5px 10px; box-shadow:3px 3px 0 var(--ink);}
+  .btn.blue{background:var(--blue); color:#fff;}
+  .btn.ghost{background:#fff;}
+
+  /* ---- pipeline strip ---- */
+  .pipeline{display:flex; gap:0; padding:20px 26px 6px; overflow-x:auto;}
+  .step{
+    flex:1; min-width:150px; border:3px solid var(--ink); background:#fff;
+    padding:11px 13px; margin-right:-3px; position:relative;
+    opacity:.35; transform:translateY(6px); transition:opacity .35s, transform .35s, background .35s;
+  }
+  .step.on{opacity:1; transform:translateY(0); background:var(--paper);}
+  .step.on:nth-child(6n+1){background:#fff;}
+  .step .n{font-family:"Archivo Black"; font-size:11px; background:var(--ink); color:var(--yellow); padding:1px 7px; display:inline-block;}
+  .step h3{font-size:13px; margin:7px 0 4px; text-transform:uppercase;}
+  .step p{margin:0; font-size:10.5px; line-height:1.4; opacity:.8; min-height:28px;}
+  .step.cur{box-shadow:inset 0 0 0 3px var(--yellow);}
+
+  /* ---- layout ---- */
+  main{display:grid; grid-template-columns:1.15fr .85fr; gap:22px; padding:22px 26px 40px; align-items:start;}
+  @media(max-width:1040px){main{grid-template-columns:1fr;}}
+  .col{display:flex; flex-direction:column; gap:22px;}
+  .card{border:3px solid var(--ink); background:#fff; box-shadow:var(--sh); }
+  .card > .hd{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--ink); color:var(--paper); padding:8px 14px;
+    font-family:"Archivo Black"; font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .card > .bd{padding:14px;}
+
+  /* ---- headline metric ---- */
+  .headline{display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center;}
+  .gapbox{background:var(--yellow); border:3px solid var(--ink); box-shadow:var(--sh); padding:12px 16px; text-align:center;}
+  .gapbox .big{font-family:"Archivo Black"; font-size:46px; line-height:.92;}
+  .gapbox .lbl{font-size:9.5px; text-transform:uppercase; letter-spacing:.14em; font-weight:700; margin-top:4px;}
+  .statusline{display:flex; flex-direction:column; gap:6px;}
+  .status-pill{display:inline-block; align-self:flex-start; border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+    padding:4px 12px; font-family:"Archivo Black"; font-size:14px; background:var(--teal); color:#fff; text-transform:uppercase;}
+  .kv{display:flex; gap:7px; font-size:12px;}
+  .kv b{font-weight:800;}
+
+  /* ---- proof chips ---- */
+  .proofs{display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;}
+  .chip{border:3px solid var(--ink); background:#fff; box-shadow:3px 3px 0 var(--ink); padding:7px 11px; font-size:11px;}
+  .chip b{display:block; font-family:"Archivo Black"; font-size:12px; letter-spacing:.02em;}
+  .chip .ok{color:var(--teal);} .chip .warn{color:var(--orange);}
+
+  /* ---- coverage bar ---- */
+  .cov{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+  .cov .u{border:3px solid var(--ink); padding:5px 10px; font-size:11px; font-weight:700; background:#fff; box-shadow:3px 3px 0 var(--ink);}
+  .cov .u span{font-family:"Archivo Black"; font-size:14px;}
+
+  /* ---- map ---- */
+  .screen{position:relative;}
+  svg#map{width:100%; height:auto; display:block; background:#0C1310; border:3px solid var(--ink);}
+  .hud{position:absolute; top:9px; left:12px; display:flex; gap:14px; align-items:center; pointer-events:none;}
+  .live{font-size:10px; font-weight:800; letter-spacing:.14em; color:#35E39B; text-transform:uppercase;}
+  .live b{display:inline-block; width:8px; height:8px; border-radius:50%; background:#35E39B; margin-right:6px;
+    box-shadow:0 0 6px #35E39B; animation:blink 1.2s steps(2,start) infinite;}
+  @keyframes blink{50%{opacity:.25;}}
+  .route{fill:none; stroke:#3BB6FF; stroke-width:2.6; stroke-dasharray:7 7; animation:march 1s linear infinite;}
+  @keyframes march{to{stroke-dashoffset:-28;}}
+  circle.node{cursor:pointer; transition:stroke-width .1s;}
+  circle.node:hover{stroke-width:5;}
+  rect.depot{cursor:pointer;}
+  .caption{font-size:10.5px; line-height:1.55; margin-top:11px; opacity:.82;}
+  .caption b{font-weight:800;}
+  .legend{display:flex; gap:13px; flex-wrap:wrap; margin-top:9px; font-size:10px; text-transform:uppercase; letter-spacing:.07em;}
+  .legend i{display:inline-block; width:12px; height:12px; border:2px solid var(--ink); margin-right:5px; vertical-align:-1px;}
+  .legend i.rd{height:0; width:16px; border:0; border-top:3px solid var(--blue);}
+  .legend i.bk{height:0; width:16px; border:0; border-top:3px dashed var(--pink);}
+  #tip{position:fixed; z-index:60; pointer-events:none; display:none; max-width:250px;
+    background:var(--yellow); color:var(--ink); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink);
+    padding:8px 11px; font-size:11px; line-height:1.5;}
+  #tip b{font-family:"Archivo Black"; font-size:12px; letter-spacing:.01em;}
+  #tip .k{opacity:.7;}
+
+  /* ---- priority queue ---- */
+  .q{display:flex; flex-direction:column; gap:10px;}
+  .qi{border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); background:#fff;}
+  .qi .row{display:flex; align-items:center; gap:10px; padding:9px 11px; cursor:pointer;}
+  .rank{font-family:"Archivo Black"; font-size:16px; width:26px;}
+  .zname{font-weight:800; font-size:13px; flex:1;}
+  .tier{border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); padding:2px 9px; font-family:"Archivo Black";
+    font-size:10px; text-transform:uppercase; color:#fff;}
+  .tier.critical{background:var(--pink);} .tier.high{background:var(--orange);}
+  .tier.moderate{background:var(--yellow); color:var(--ink);} .tier.low{background:var(--teal);}
+  .sev{font-size:11px; white-space:nowrap;}
+  .toggle{font-family:"Archivo Black"; font-size:13px; width:20px; text-align:center;}
+  .why{display:none; border-top:3px solid var(--ink); background:var(--paper); padding:9px 11px; font-size:11px;}
+  .qi.open .why{display:block;}
+  .why .rule{padding:2px 0; border-bottom:1px dashed rgba(21,19,12,.25);}
+  .qi.qhide{display:none;}
+  #queue.expanded .qi.qhide{display:block;}
+  .more{font-size:11px; text-align:center; padding:7px; cursor:pointer; font-weight:700;
+    border:3px dashed var(--ink); background:#fff; user-select:none;}
+  .more:hover{background:var(--yellow);}
+
+  /* ---- deployment table ---- */
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th{background:var(--paper); text-align:left; padding:7px 9px; border:2px solid var(--ink);
+    font-size:10px; text-transform:uppercase; letter-spacing:.08em;}
+  td{padding:7px 9px; border:2px solid var(--ink);}
+  td.acts{white-space:nowrap; display:flex; gap:6px;}
+  .pin{color:var(--blue); font-family:"Archivo Black";}
+
+  pre.tree{background:#0C1310; color:#C9F7E5; border:3px solid var(--ink); box-shadow:inset 3px 3px 0 rgba(0,0,0,.4);
+    padding:11px 13px; margin:0 0 4px; font-family:"JetBrains Mono"; font-size:11px; line-height:1.5;
+    max-height:230px; overflow:auto; white-space:pre;}
+  #searchbars{margin:4px 0 2px;}
+  #msg{font-size:11px; font-weight:700; align-self:center;}
+  .empty{padding:50px 14px; text-align:center; opacity:.5; font-size:12px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">BANDOBAST</div>
+    <div class="tagline">Solver-first disaster response — no language model in the decision path</div>
+  </div>
+  <div class="controls">
+    <div class="field"><label>Seed</label><input id="seed" type="number" value="42"/></div>
+    <div class="field"><label>Zones</label><input id="zones" type="number" value="8"/></div>
+    <div class="field"><label>Units</label><input id="units" type="number" value="6"/></div>
+    <button class="btn" id="run">Solve ▶</button>
+    <span id="msg"></span>
+  </div>
+</header>
+
+<section class="pipeline" id="pipeline">
+  <div class="step" data-k="ingest"><span class="n">01</span><h3>Ingest</h3><p></p></div>
+  <div class="step" data-k="forecast"><span class="n">02</span><h3>Forecast</h3><p></p></div>
+  <div class="step" data-k="rank"><span class="n">03</span><h3>Rank</h3><p></p></div>
+  <div class="step" data-k="route"><span class="n">04</span><h3>Route</h3><p></p></div>
+  <div class="step" data-k="allocate"><span class="n">05</span><h3>Allocate</h3><p></p></div>
+  <div class="step" data-k="explain"><span class="n">06</span><h3>Explain</h3><p></p></div>
+</section>
+
+<main>
+  <div class="col">
+    <div class="card">
+      <div class="hd"><span>Live operations screen</span><span id="mapmeta"></span></div>
+      <div class="bd">
+        <div class="screen">
+          <svg id="map" viewBox="0 0 400 340"><text class="empty" x="200" y="170" text-anchor="middle" fill="#5a6b62">press SOLVE</text></svg>
+          <div class="hud"><span class="live"><b></b>Live · dispatch</span></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--pink)"></i>Critical</span>
+          <span><i style="background:var(--orange)"></i>High</span>
+          <span><i style="background:var(--yellow)"></i>Moderate</span>
+          <span><i style="background:var(--teal)"></i>Low</span>
+          <span><i style="background:#EDEDE5"></i>Depot</span>
+          <span><i class="rd"></i>Unit en route</span>
+          <span><i class="bk"></i>Blocked road</span>
+        </div>
+        <div class="caption"><b>How to read it:</b> each glowing node is a flood zone — colour is its urgency. Black-bordered squares are depots (where units wait). Blue lines are units driving to a zone along real roads; the white dot is the unit moving, slower lines = longer ETA. Red dashed roads are submerged/blocked, so units route around them. <b>Hover anything</b> for its numbers.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><span>Priority queue — why this order</span><span id="qmeta"></span></div>
+      <div class="bd"><div class="q" id="queue"><div class="empty">—</div></div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <div class="hd"><span>Allocation — feasibility certificate</span></div>
+      <div class="bd">
+        <div class="headline">
+          <div class="gapbox"><div class="big" id="gap">—</div><div class="lbl">Optimality gap</div></div>
+          <div class="statusline">
+            <span class="status-pill" id="status">IDLE</span>
+            <div class="kv">objective <b id="obj">—</b></div>
+            <div class="kv">solve time <b id="time">—</b></div>
+            <div class="kv">units deployed <b id="deployed">—</b></div>
+          </div>
+        </div>
+        <div class="cov" id="cov"></div>
+        <div class="proofs" id="proofs"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><span>Deployment order</span><span id="dmeta"></span></div>
+      <div class="bd">
+        <table><thead><tr><th>Unit</th><th>Kind</th><th>Zone</th><th>ETA</th><th>Override</th></tr></thead>
+        <tbody id="deploy"><tr><td colspan="5" class="empty">—</td></tr></tbody></table>
+        <div class="caption"><b>Commander override.</b> <b>VETO</b> forbids that unit→zone order; the solver re-optimises the <i>rest</i> and re-tasks the unit elsewhere, so ETAs — and even which zones get served — can shift. <b>PIN</b> locks an order the commander insists on; the solver keeps it fixed and optimises around it. Because units are scarce and interdependent, vetoing different units changes the plan by different amounts: remove the only ambulance that can reach a medical zone and the solver must find a costlier replacement (objective drops more); veto a redundant unit and the objective barely moves.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><span>Route search — A* vs Dijkstra</span><span id="smeta"></span></div>
+      <div class="bd">
+        <div class="headline">
+          <div class="gapbox" style="background:var(--teal);color:#fff"><div class="big" id="afewer">—</div><div class="lbl" style="color:#fff">fewer nodes explored</div></div>
+          <div class="statusline">
+            <div class="kv">A* expanded <b id="aexp">—</b> nodes</div>
+            <div class="kv">Dijkstra expanded <b id="dexp">—</b> nodes</div>
+            <div class="kv" id="sverify">—</div>
+          </div>
+        </div>
+        <svg id="searchbars" viewBox="0 0 400 56"></svg>
+        <div class="caption">Both return the <b>same shortest path</b> — I verify it every time. A*'s admissible heuristic simply reaches that path while settling far fewer graph nodes: <b>informed vs uninformed search</b>.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd"><span>Priority rules — the learned decision tree</span><span id="tmeta"></span></div>
+      <div class="bd">
+        <pre id="tree" class="tree">—</pre>
+        <div class="caption">This is the <b>actual tree</b> the classifier learned, depth-limited so it stays readable. Every zone's tier is one path down these splits — the queue's "why" is literally this, not a black box.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="tip"></div>
+<script>
+const $=s=>document.querySelector(s);
+const TIERS=["critical","high","moderate","low"];
+const TIERCOL={critical:"#FF4D5E",high:"#FF8A3D",moderate:"#FFCB2D",low:"#13C296"};
+let STATE={scenario:null, plan:null};
+
+async function api(path,opts){const r=await fetch(path,opts); if(!r.ok) throw new Error(path+' '+r.status); return r.json();}
+
+async function run(){
+  const b=$('#run'); b.disabled=true; $('#msg').textContent='solving…';
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('on','cur'));
+  try{
+    const body={seed:+$('#seed').value, n_zones:+$('#zones').value, n_units:+$('#units').value};
+    STATE.scenario=await api('/scenarios/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    STATE.plan=await api(`/scenarios/${STATE.scenario.id}/solve`,{method:'POST'});
+    render(); animatePipeline();
+    $('#msg').textContent='plan '+STATE.plan.plan_id.slice(0,8);
+  }catch(e){$('#msg').textContent='error: '+e.message;}
+  b.disabled=false;
+}
+
+async function override(unit,zone,action){
+  $('#msg').textContent='re-solving ('+action+')…';
+  STATE.plan=await api(`/scenarios/${STATE.scenario.id}/override`,{
+    method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify([{unit_id:unit,zone_id:zone,action}])});
+  render();
+  $('#msg').textContent=`${action} ${unit}→${zone} absorbed → re-solved`;
+}
+
+function animatePipeline(){
+  const steps=document.querySelectorAll('.step');
+  steps.forEach((s,i)=>setTimeout(()=>{
+    steps.forEach(x=>x.classList.remove('cur'));
+    s.classList.add('on','cur');
+    if(i===steps.length-1) setTimeout(()=>s.classList.remove('cur'),500);
+  }, i*160));
+}
+
+function render(){
+  const {scenario,plan}=STATE;
+  const fc=Object.fromEntries(plan.forecast.forecasts.map(f=>[f.zone_id,f]));
+  const tier=Object.fromEntries(plan.priority.results.map(r=>[r.zone_id,r.tier]));
+  fillTrace(plan);
+  drawMap(scenario,plan,tier,fc);
+  drawQueue(plan,fc);
+  drawAlloc(scenario,plan);
+  drawSearch(plan);
+  drawTree(plan);
+}
+
+function drawSearch(plan){
+  const rs=plan.routes.filter(r=>r.reachable && r.dijkstra_expanded!=null);
+  const a=rs.reduce((s,r)=>s+r.expanded_nodes,0);
+  const d=rs.reduce((s,r)=>s+(r.dijkstra_expanded||0),0);
+  const fewer=d? (1-a/d)*100 : 0;
+  $('#afewer').textContent=fewer.toFixed(0)+'%';
+  $('#aexp').textContent=a; $('#dexp').textContent=d;
+  const rt=plan.trace.stages.find(s=>s.stage==='route');
+  const nmis=(rt&&rt.artefact.astar_dijkstra_mismatches)?rt.artefact.astar_dijkstra_mismatches.length:0;
+  $('#sverify').innerHTML = nmis===0
+    ? `<b style="color:var(--teal)">${rs.length} shortest paths verified ✓</b>`
+    : `<b style="color:var(--pink)">${nmis} mismatches</b>`;
+  const max=Math.max(a,d,1), scale=v=>30+v/max*330;
+  $('#searchbars').innerHTML=
+    `<text x="0" y="16" font-size="10" font-weight="700" fill="#15130C" font-family="JetBrains Mono">A*</text>
+     <rect x="30" y="5" width="${scale(a)-30}" height="16" fill="#13C296" stroke="#15130C" stroke-width="2"/>
+     <text x="${scale(a)+6}" y="17" font-size="10" fill="#15130C" font-family="JetBrains Mono">${a}</text>
+     <text x="0" y="48" font-size="10" font-weight="700" fill="#15130C" font-family="JetBrains Mono">Dij</text>
+     <rect x="30" y="37" width="${scale(d)-30}" height="16" fill="#FF8A3D" stroke="#15130C" stroke-width="2"/>
+     <text x="${scale(d)+6}" y="49" font-size="10" fill="#15130C" font-family="JetBrains Mono">${d}</text>`;
+  $('#smeta').textContent=`${rs.length} routes`;
+}
+
+function drawTree(plan){
+  $('#tree').textContent=plan.priority.tree_text;
+  $('#tmeta').textContent=`depth ${plan.priority.max_depth} · held-out acc ${(plan.priority.accuracy*100).toFixed(0)}%`;
+}
+
+function fillTrace(plan){
+  const byStage=Object.fromEntries(plan.trace.stages.map(s=>[s.stage,s.summary]));
+  // compress technical summaries into one presentable line each
+  const short={
+    ingest:`${plan.priority.results.length} zones · ${STATE.scenario.units.length} units loaded`,
+    forecast:`model picks escalation Δ per zone`,
+    rank:`decision tree → urgency tier`,
+    route:`A* ETAs, verified vs Dijkstra`,
+    allocate:`CP-SAT exact, gap ${(plan.allocation.optimality_gap*100).toFixed(1)}%`,
+    explain:`every number traceable above`,
+  };
+  document.querySelectorAll('.step').forEach(s=>{s.querySelector('p').textContent=short[s.dataset.k]||byStage[s.dataset.k]||'';});
+}
+
+function project(sc){
+  const c=Object.values(sc.graph.coords);
+  const la=c.map(p=>p[0]), lo=c.map(p=>p[1]);
+  const mLa=Math.min(...la),XLa=Math.max(...la),mLo=Math.min(...lo),XLo=Math.max(...lo),pad=26;
+  return (lat,lon)=>[pad+(lon-mLo)/((XLo-mLo)||1)*(400-2*pad), 340-pad-(lat-mLa)/((XLa-mLa)||1)*(340-2*pad)];
+}
+
+function drawMap(sc,plan,tier,fc){
+  const p=project(sc), C=sc.graph.coords;
+  const pt=n=>p(C[n][0],C[n][1]);
+  const zById=Object.fromEntries(sc.zones.map(z=>[z.id,z]));
+  const uById=Object.fromEntries(sc.units.map(u=>[u.id,u]));
+  const routeByPair={}; for(const r of plan.routes){ routeByPair[r.source+'_'+r.target]=r; }
+
+  let defs=`<defs>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="rgba(120,150,140,.09)" stroke-width="1"/></pattern>
+    <linearGradient id="scan" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#35E39B" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#35E39B" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#35E39B" stop-opacity="0"/></linearGradient></defs>`;
+
+  // base layers
+  let s=defs+`<rect x="0" y="0" width="400" height="340" fill="url(#grid)"/>`;
+
+  // road network (blocked roads emphasised)
+  for(const e of sc.graph.edges){
+    const [x1,y1]=pt(e.u),[x2,y2]=pt(e.v);
+    s+= e.blocked
+      ? `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,77,94,.65)" stroke-width="1.6" stroke-dasharray="4 4"/>`
+      : `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(120,150,140,.22)" stroke-width="1"/>`;
+  }
+
+  // radar sweep
+  s+=`<rect x="-70" y="0" width="70" height="340" fill="url(#scan)">
+    <animateTransform attributeName="transform" type="translate" from="0 0" to="470 0" dur="5s" repeatCount="indefinite"/></rect>`;
+
+  // assigned routes along the real A* path + a moving unit dot
+  for(const a of plan.allocation.assignments){
+    const u=uById[a.unit_id], z=zById[a.zone_id];
+    const r=routeByPair[u.depot_node+'_'+z.node];
+    const nodes=(r&&r.path&&r.path.length)?r.path:[u.depot_node,z.node];
+    const d='M'+nodes.map(n=>{const [x,y]=pt(n); return x.toFixed(1)+' '+y.toFixed(1);}).join(' L');
+    const dur=Math.min(7,Math.max(2.5,a.eta_min*0.6));
+    const segs=nodes.length-1;
+    const dij=(r&&r.dijkstra_expanded!=null)?r.dijkstra_expanded:'–';
+    const tipR=`<b>${a.unit_id} → ${a.zone_id}</b><br>${u.kind} en route<br><span class='k'>ETA</span> ${a.eta_min.toFixed(0)} min · ${segs} road segments<br><span class='k'>search</span> A* expanded ${r?r.expanded_nodes:'–'} vs Dijkstra ${dij} nodes<br><span class='k'>same shortest-path cost ✓</span>`;
+    s+=`<path d="${d}" fill="none" stroke="transparent" stroke-width="16" pointer-events="stroke" data-tip="${tipR}"/>`;
+    s+=`<path class="route" d="${d}" pointer-events="none"/>`;
+    s+=`<circle r="3.4" fill="#fff" stroke="#3BB6FF" stroke-width="1.5" data-tip="${tipR}">
+      <animateMotion dur="${dur}s" repeatCount="indefinite" path="${d}"/></circle>`;
+  }
+
+  // zone pulse rings for urgent tiers
+  for(const z of sc.zones){ const t=tier[z.id]; if(t!=='critical'&&t!=='high') continue;
+    const [x,y]=pt(z.node), br=10+Math.sqrt(z.population)/55, col=TIERCOL[t];
+    s+=`<circle cx="${x}" cy="${y}" r="${br}" fill="none" stroke="${col}" stroke-width="2">
+      <animate attributeName="r" values="${br};${br+15}" dur="1.9s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;0" dur="1.9s" repeatCount="indefinite"/></circle>`;
+  }
+
+  // zones
+  const zoneNodes=new Set(sc.zones.map(z=>z.node));
+  for(const z of sc.zones){ const [x,y]=pt(z.node);
+    const f=fc[z.id], rad=8+Math.sqrt(z.population)/55;
+    const tip=`<b>${z.id} · ${z.name}</b><br><span class='k'>tier</span> ${tier[z.id]}<br><span class='k'>population</span> ${z.population.toLocaleString()}<br><span class='k'>severity</span> ${z.severity.toFixed(2)} → forecast ${f.predicted_next.toFixed(2)}<br><span class='k'>casualties</span> ${z.casualties} · <span class='k'>medical</span> ${z.medical_cases}`;
+    s+=`<circle class="node" cx="${x}" cy="${y}" r="${rad}" fill="${TIERCOL[tier[z.id]]||'#ccc'}" stroke="#0C1310" stroke-width="2.5" data-tip="${tip}"/>`;
+    s+=`<text x="${x}" y="${y+3.4}" font-size="9" font-weight="700" text-anchor="middle" fill="#0C1310" font-family="JetBrains Mono" pointer-events="none">${z.id}</text>`;
+  }
+
+  // depots last so none hide behind a zone; a depot sharing a zone's node is
+  // nudged to the corner and tethered, so all units stay visible
+  for(const u of sc.units){ const [x,y]=pt(u.depot_node);
+    const onZone=zoneNodes.has(u.depot_node);
+    const tx=onZone?x+13:x, ty=onZone?y-13:y;
+    const tip=`<b>${u.id} · ${u.kind}</b><br><span class='k'>capacity</span> ${u.capacity} persons<br><span class='k'>stationed at</span> node ${u.depot_node}${onZone?' (pre-staged at a zone)':''}`;
+    if(onZone) s+=`<line x1="${x}" y1="${y}" x2="${tx}" y2="${ty}" stroke="#EDEDE5" stroke-width="1" opacity="0.65"/>`;
+    s+=`<rect class="depot" x="${tx-4.5}" y="${ty-4.5}" width="9" height="9" fill="#EDEDE5" stroke="#0C1310" stroke-width="2" data-tip="${tip}"/>`;
+  }
+
+  $('#map').innerHTML=s;
+  $('#mapmeta').textContent=`${plan.allocation.assignments.length} units moving`;
+  wireTips();
+}
+
+function wireTips(){
+  const tip=$('#tip');
+  document.querySelectorAll('#map [data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{tip.innerHTML=el.getAttribute('data-tip'); tip.style.display='block';});
+    el.addEventListener('mousemove',e=>{
+      tip.style.left=Math.min(e.clientX+15, window.innerWidth-262)+'px';
+      tip.style.top=Math.min(e.clientY+16, window.innerHeight-130)+'px';});
+    el.addEventListener('mouseleave',()=>{tip.style.display='none';});
+  });
+}
+
+function drawQueue(plan,fc){
+  const items=plan.priority.results, cap=6;
+  let s='';
+  items.forEach((r,i)=>{
+    const f=fc[r.zone_id];
+    const rules=r.decision_path.length?r.decision_path.map(x=>`<div class="rule">${x}</div>`).join(''):'<div class="rule">leaf node — base tier</div>';
+    s+=`<div class="qi${i>=cap?' qhide':''}"><div class="row" onclick="this.parentNode.classList.toggle('open')">
+      <span class="rank">${i+1}</span>
+      <span class="zname">${r.zone_id} · ${zoneName(r.zone_id)}</span>
+      <span class="sev">sev ${f.current_severity.toFixed(2)}→<b>${f.predicted_next.toFixed(2)}</b></span>
+      <span class="tier ${r.tier}">${r.tier}</span>
+      <span class="toggle">＋</span></div>
+      <div class="why"><b>Decision path (tree):</b>${rules}</div></div>`;
+  });
+  const q=$('#queue'); q.classList.remove('expanded');
+  if(items.length>cap) s+=`<div class="more" id="qmore" data-n="${items.length-cap}" onclick="toggleQueue()">+ ${items.length-cap} more zones ▾</div>`;
+  q.innerHTML=s;
+  $('#qmeta').textContent='click a zone for its reasoning';
+}
+function toggleQueue(){
+  const q=$('#queue'), m=$('#qmore'); q.classList.toggle('expanded');
+  m.textContent = q.classList.contains('expanded') ? '▴ show fewer zones' : `+ ${m.dataset.n} more zones ▾`;
+}
+function zoneName(id){const z=STATE.scenario.zones.find(z=>z.id===id); return z?z.name:'';}
+
+function drawAlloc(sc,plan){
+  const a=plan.allocation;
+  $('#gap').textContent=(a.optimality_gap*100).toFixed(1)+'%';
+  const st=$('#status'); st.textContent=a.status;
+  st.style.background=a.status==='OPTIMAL'?'var(--teal)':(a.status==='FEASIBLE'?'var(--orange)':'var(--pink)');
+  $('#obj').textContent=a.objective_value.toFixed(0);
+  $('#time').textContent=a.wall_time_s.toFixed(2)+'s';
+  $('#deployed').textContent=`${a.assignments.length} / ${sc.units.length}`;
+
+  const c=a.coverage;
+  $('#cov').innerHTML=covUnit('Critical',c.critical_met,c.critical_total)
+    +covUnit('Medical',c.medical_met,c.medical_total)+covUnit('Equity',c.equity_met,c.equity_total);
+
+  const f=plan.forecast, g=plan.ga_baseline;
+  let proofs=`<div class="chip">Forecast vs persistence<b class="${f.beats_persistence?'ok':'warn'}">${f.beats_persistence?'BEATS BASELINE ✓':'no gain'}</b></div>`;
+  if(g){ const gp=g.real_gap*100, tie=Math.abs(gp)<0.05;
+    proofs+=`<div class="chip">GA heuristic (no proof)<b class="${gp<1?'ok':'warn'}">${tie?'tied exact, unproven':gp.toFixed(1)+'% off optimal'}</b></div>`; }
+  $('#proofs').innerHTML=proofs;
+
+  const uById=Object.fromEntries(sc.units.map(u=>[u.id,u]));
+  $('#deploy').innerHTML=a.assignments.length? a.assignments.map(as=>{
+    const u=uById[as.unit_id];
+    return `<tr><td>${as.unit_id}${as.pinned?' <span class="pin">📌</span>':''}</td><td>${u.kind}</td>
+      <td>${as.zone_id}</td><td>${as.eta_min.toFixed(0)}m</td>
+      <td class="acts"><button class="btn sm ghost" onclick="override('${as.unit_id}','${as.zone_id}','veto')">veto</button>
+      <button class="btn sm blue" onclick="override('${as.unit_id}','${as.zone_id}','pin')">pin</button></td></tr>`;
+  }).join('') : '<tr><td colspan="5" class="empty">no feasible deployment</td></tr>';
+  $('#dmeta').textContent=a.coverage.unmet.length?`${a.coverage.unmet.length} target(s) unmet (scarcity)`:'';
+}
+function covUnit(name,met,total){
+  return `<div class="u">${name} <span>${met}/${total}</span></div>`;
+}
+
+$('#run').onclick=run;
+window.override=override;
+run();
+</script>
+</body>
+</html>

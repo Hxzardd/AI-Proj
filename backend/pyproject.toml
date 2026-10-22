@@ -1,0 +1,17 @@
+[project]
+name = "bandobast"
+version = "0.1.0"
+description = "Optimisation-first disaster response and resource allocation"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi", "uvicorn", "pydantic", "numpy", "pandas", "scikit-learn",
+  "networkx", "ortools", "deap", "scipy",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx", "ruff"]
+osm = ["osmnx"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
